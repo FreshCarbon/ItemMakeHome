@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.imh.couponMapper">
+
+	<!-- 페이징 처리 후 전체조회 -->
+	<select id="listCriteria" resultType="CouponDTO">
+		<![CDATA[
+		select
+		cpCode, cpName, cpPercent, cpExpireA, cpExpireB, cpType
+		from coupon
+		where cpCode > 0
+		
+		limit  #{pageStart}, #{perPageNum}
+		]]>
+	</select>
+	
+	<select id="countPaging" resultType="java.lang.Integer">
+		<![CDATA[
+			select count(cpCode)
+			from coupon
+			where cpCode > 0
+		]]>
+	</select>
+	<select id="listSearch" resultType="CouponDTO">
+		<![CDATA[
+		select
+		cpCode, cpName, cpPercent, cpExpireA, cpExpireB, cpType
+		from coupon
+		where cpCode > 0
+		]]>
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()">
+				and cpName like CONCAT('%', #{keyword}, '%')
+			</if>
+			<if test="searchType == 'w'.toString()">
+				and cpType like CONCAT('%', #{keyword}, '%')
+			</if>
+			<if test="searchType == 'tw'.toString()">
+				and ( cpName like CONCAT('%', #{keyword}, '%') OR cpType like CONCAT('%', #{keyword}, '%'))
+			</if>
+		</if>
+		<![CDATA[	
+		limit  #{pageStart}, #{perPageNum}
+		]]>
+	</select>
+	
+	
+	<!--상세 조회 -->
+	<select id="detail" parameterType="java.lang.Integer" resultType="CouponDTO">
+		select *
+		from coupon
+		where cpCode=#{cpCode}
+	</select>
+	
+
+	<!-- 쿠폰 생성 -->
+	<insert id="regist" parameterType="CouponDTO" >
+		insert into coupon 
+		(cpName, cpPercent, cpExpireA, cpExpireB, cpType)
+		values
+		(#{cpName}, #{cpPercent}, #{cpExpireA}, #{cpExpireB}, #{cpType})
+	</insert>
+	
+	<!-- 쿠폰 수정 -->
+	<update id="update" parameterType="CouponDTO">
+		update coupon
+		set
+		cpName=#{cpName},
+		cpPercent=#{cpPercent},
+		cpExpireA=#{cpExpireA},
+		cpExpireB=#{cpExpireB}
+		where cpCode=#{cpCode}
+	</update>
+	
+	<!-- 쿠폰삭제 -->
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete 
+		from coupon
+		where cpCode=#{cpCode}
+	</delete>
+	
+	<!-- 쿠폰발급 전체조회 -->
+	<select id="list2" resultType="CouponDTO" >
+		select * 
+		from couponisue
+	</select>
+	
+	<select id="listCriteria2" resultType="CouponDTO">
+		<![CDATA[
+		select
+		cpUnique,userId, cpCode, cpStart, cpExpire, cpState
+		from couponisue
+		where cpCode > 0
+		
+		limit  #{pageStart}, #{perPageNum}
+		]]>
+	</select>
+	
+	<select id="countPaging2" resultType="java.lang.Integer">
+		<![CDATA[
+			select count(cpCode)
+			from coupon
+			where cpCode > 0
+		]]>
+	</select>
+	
+	<!--  발급내역 상세조회 -->
+	<select id="detail2" parameterType="java.lang.Integer" resultType="CouponDTO">
+		select cp1.cpUnique as cpUnique, cp1.userId as userId, cp2.cpCode as cpCode, 
+		cp2.cpPercent as cpPercent, cp1.cpStart as cpStart, cp1.cpExpire as cpExpire,
+		cp2.cpType, cp2.cpName as cpName, cp1.cpState
+		from couponisue as cp1 join coupon as cp2
+		on cp1.cpCode = cp2.cpCode
+		where cpUnique = #{cpUnique}
+	</select>
+	
+	<!-- 지급쿠폰 수정 -->
+	<update id="update2" parameterType="CouponDTO">
+		update couponisue join coupon
+		on couponisue.cpCode = coupon.cpCode
+		set		
+		cpStart=#{cpStart},
+		cpStart=#{cpStart},
+		cpStart=#{cpStart},
+		cpStart=#{cpStart},
+		cpStart=#{cpStart},
+		cpExpire=#{cpExpire}
+		where cpUnque=#{cpUnique}
+	</update>
+	
+	<!-- 지급쿠폰 취소 -->
+	<delete id="delete2" parameterType="java.lang.Integer">
+		delete 
+		from couponisue
+		where cpUnique=#{cpUnique}
+	</delete>
+	
+		<!-- 게시글 번호에 해당하는 댓글리스트 조회 sql -->
+	<select id="replyList" resultType="CouponReply">
+		select *
+		from couponreply
+		where cpCode = #{cpCode}
+	</select>
+	
+		<!-- 댓글 작성 -->
+	<insert id="replyRegist" parameterType="CouponReply">
+		insert into couponreply
+		(rewriter, rememo, redate, cpCode)
+		values
+		(#{rewriter}, #{rememo}, CURDATE(), #{cpCode})
+	</insert>
+	
+	<!-- 댓글수정 -->
+	<update id="replyUpdate" parameterType="CouponReply">
+		update couponreply
+		set
+		rewriter =#{rewriter},
+		rememo =#{rememo}
+		where reno =#{reno}
+	</update>
+	
+	<!-- 댓글 삭제 -->
+	<delete id="replyDelete" parameterType="java.lang.Integer">
+		delete
+		from couponreply
+		where reno= #{reno}
+	</delete>
+	
+	
+	<!-- 유저쿠폰 등록sql 가변 -->
+	<insert id="cpActive" parameterType="CouponDTO">
+		insert into couponisue
+		(userId, cpCode, cpStart, cpExpire, cpState)
+		values
+		(#{userId}, #{cpCode}, curdate(), 
+		curdate() + interval(select cpExpireA from coupon where cpCode = #{cpCode} )  day, 1)
+	</insert>
+	
+		<!-- 유저쿠폰 등록sql 고정 -->
+	<insert id="cpActive2" parameterType="CouponDTO">
+		insert into couponisue
+		(userId, cpCode, cpStart, cpExpire, cpState)
+		values
+		(#{userId}, #{cpCode}, curdate(), #{cpExpireB}, 1 )
+	</insert>
+	
+	<!--  유저 쿠폰 비활성화sql -->
+	<update id="cpOff" parameterType="java.lang.Integer">
+		update couponisue
+		set
+		cpState = 0
+		where cpUnique = #{cpUnique}
+	</update>
+	
+	<!-- 유저쿠폰 재활성화sql -->
+	<update id="cpOn" parameterType="java.lang.Integer">
+		update couponisue
+		set
+		cpState = 1
+		where cpUnique = #{cpUnique}
+	</update>
+	
+	
+	
+
+	
+	
+</mapper>

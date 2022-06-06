@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.imh.categoriMapper">
+	
+	
+	<!--  카테고리 전체조회 -->
+	<select id="list" resultType="CategoriDTO">
+		select cateCode, cateName, cateImg
+		from categori
+	</select>
+	
+	<!--상세 조회 -->
+	<select id="detail" parameterType="java.lang.Integer" resultType="CategoriDTO">
+		select ptCode, orderNum,userId, ptCost, ptStart, ptExpire
+		from point
+		where ptCode=#{ptCode}
+	</select>
+	
+	<!--  카테고리 생성 -->
+	<insert id="regist" parameterType="CategoriDTO" >
+		insert into categori
+		(cateCode, cateName, cateImg)
+		values
+		(#{cateCode}, #{cateName}, #{cateImg})
+	</insert>
+	
+	<!-- 카테고리 삭제 -->
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete 
+		from categori
+		where cateCode=#{cateCode}	
+	</delete>
+	
+	<!-- 카테고리 수정 -->
+	<update id="update" parameterType="CategoriDTO">
+		update point
+		set
+		ptCode=#{ptCode},
+		userId=#{userId},
+		ptCost=#{ptCost},
+		ptStart=#{ptStart}
+		ptExpire=#{ptExpire}
+		where cpCode=#{ptCode}
+	</update>
+	
+
+
+</mapper>
